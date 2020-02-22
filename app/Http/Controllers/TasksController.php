@@ -47,7 +47,7 @@ class TasksController extends Controller
             'content' => 'required|max:191',
         ]);
 
-        $task = new TasksController;
+        $task = new Task;
         $task->content = $request->content;
         $task->save();
 
