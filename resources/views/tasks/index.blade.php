@@ -23,7 +23,7 @@
                 @endforeach
             </tbody>
         </table>
-        {!! link_to_route('tasks.create', '新規タスクの投稿', [], ['class' => 'btn btn-primary']) !!}
+        {!! link_to_route('tasks.create', 'タスクの投稿', [], ['class' => 'btn btn-primary']) !!}
         
     @elseif(Auth::check() && count($tasks) == 0)
     <p>まだタスクがありません。</p>
