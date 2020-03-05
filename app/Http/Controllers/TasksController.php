@@ -14,11 +14,19 @@ class TasksController extends Controller
      */
     public function index()
     {
-        $tasks = Task::all();
-
-        return view('tasks.index', [
-            'tasks' => $tasks,
-        ]);
+        if (\Auth::check()) {
+            $user = \Auth::user();
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
+            
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+             return view('tasks.index', $data);
+        }else{
+            return view('tasks.welcome');
+        }
+       
     }
 
     /**
@@ -28,7 +36,7 @@ class TasksController extends Controller
      */
     public function create()
     {
-     $task = new Task;
+        $task = new Task;
 
         return view('tasks.create', [
             'task' => $task,
@@ -49,6 +57,7 @@ class TasksController extends Controller
         ]);
 
         $task = new Task;
+        $task->user_id = \Auth::id();
         $task->status = $request->status;   
         $task->content = $request->content;
         $task->save();
@@ -64,11 +73,15 @@ class TasksController extends Controller
      */
     public function show($id)
     {
-       $task = Task::find($id);
-
-        return view('tasks.show', [
-            'task' => $task,
-        ]);
+            $task = Task::find($id);
+            // $taskがログインユーザーのものでなかったら、リダイレクト。
+            if (\Auth::id() != $task->user_id) {
+                return redirect('/');
+            }else{
+                return view('tasks.show', [
+                   'task' => $task,
+                ]);
+            }
     }
 
     /**
@@ -79,11 +92,15 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
-      $task = Task::find($id);
-
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+            $task = Task::find($id);
+            // $taskがログインユーザーのものでなかったら、リダイレクト。
+            if (\Auth::id() != $task->user_id) {
+                return redirect('/');
+            }else{
+                 return view('tasks.edit', [
+                   'task' => $task,
+                ]);
+            }
     }
 
     /**
@@ -95,17 +112,24 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
-            'status' => 'required|max:10',   // 追加
-            'content' => 'required|max:191',
-        ]);
-        
-        $task = Task::find($id);
-        $task->status = $request->status;  
-        $task->content = $request->content;
-        $task->save();
-
-        return redirect('/');
+            $task = Task::find($id);
+            // $taskがログインユーザーのものでなかったら、リダイレクト。
+            if (\Auth::id() != $task->user_id) {
+                return redirect('/');
+            }
+            
+            $this->validate($request, [
+                'status' => 'required|max:10',   // 追加
+                'content' => 'required|max:191',
+            ]);
+            
+            $task->status = $request->status;  
+            $task->content = $request->content;
+            $task->save();
+            
+           
+    
+           return redirect('/');
     }
 
     /**
@@ -116,9 +140,13 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-     $task = Task::find($id);
-        $task->delete();
-
-        return redirect('/');
+            $task = Task::find($id);
+            // $taskがログインユーザーのものでなかったら、リダイレクト。 
+            if (\Auth::id() != $task->user_id) {
+                return redirect('/');
+            }
+            
+            $task->delete();
+            return redirect('/');
     }
 }
